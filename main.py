@@ -3,6 +3,7 @@ from database import AsyncSessionLocal
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
 from models import Event
+from sqlalchemy.orm import selectinload
 app = FastAPI()
 
 app.add_middleware(
@@ -23,7 +24,9 @@ async def get_db():
 
 @app.get("/events")
 async def events(db = Depends(get_db)):
-    result = await db.execute(select(Event))
+    result = await db.execute(
+        select(Event).options(selectinload(Event.tags))
+    )
     event_results = result.scalars().all()
 
     return [
@@ -36,7 +39,8 @@ async def events(db = Depends(get_db)):
             "end_time": e.end_time,
             "location_short_name": e.location_short_name,
             "address": e.address,
-            "dress_code": e.dress_code
+            "dress_code": e.dress_code,
+            "tags": [t.name for t in e.tags],
         }
         for e in event_results
     ]
