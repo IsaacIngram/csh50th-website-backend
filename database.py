@@ -7,9 +7,11 @@ DATABASE_URL = environ.get('DB_URL')
 
 import os
 
+username = os.getenv("DB_USERNAME")
 password = quote_plus(os.getenv("DB_PASSWORD"))
+db_name = os.getenv("DB_NAME")
 
-DATABASE_URL = f"postgresql+asyncpg://events_user:{password}@postgres:5432/events_db"
+DATABASE_URL = f"postgresql+asyncpg://{username}:{password}@postgres:5432/{db_name}"
 
 engine = create_async_engine(DATABASE_URL)
 
