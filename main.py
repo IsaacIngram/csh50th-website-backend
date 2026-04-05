@@ -12,7 +12,7 @@ async def get_db():
 @app.get("/events")
 async def events(db = Depends(get_db)):
     result = await db.execute(select(Event))
-    event_results = result.scalars.all()
+    event_results = result.scalars().all()
 
     return [
         {
