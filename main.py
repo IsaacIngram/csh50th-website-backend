@@ -1,9 +1,21 @@
 from fastapi import FastAPI, Depends
 from database import AsyncSessionLocal
-
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
 from models import Event
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",
+        "https://csh-50th-website-csh-50th-draft-site.apps.okd4.csh.rit.edu",
+        "50th.csh.rit.edu"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 async def get_db():
     async with AsyncSessionLocal() as session:
