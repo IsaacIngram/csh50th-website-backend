@@ -40,7 +40,7 @@ async def events(db = Depends(get_db)):
             "location_short_name": e.location_short_name,
             "address": e.address,
             "dress_code": e.dress_code,
-            "tags": [t.name for t in e.tags],
+            "tags": [t.tag_name for t in e.tags],
         }
         for e in event_results
     ]
