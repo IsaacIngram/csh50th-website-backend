@@ -11,7 +11,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:8080",
         "https://csh-50th-website-csh-50th-draft-site.apps.okd4.csh.rit.edu",
-        "50th.csh.rit.edu"
+        "50th.csh.rit.edu",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
