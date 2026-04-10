@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, Text, Date, Time, String, Table, ForeignKey
+from sqlalchemy import Column, Integer, Text, Date, Time, String, Table, ForeignKey, UUID, DateTime
 from sqlalchemy.orm import declarative_base, relationship
+import uuid
 
 Base = declarative_base()
 
@@ -32,3 +33,13 @@ class Tag(Base):
     tag_name = Column(String)
 
     events = relationship("Event", secondary=event_tags, back_populates="tags")
+
+class EventTicket(Base):
+    __tablename__ = "event_tickets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    ticket_id = Column(Integer, nullable=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+
+    event = relationship("Event", back_populates="tickets")
