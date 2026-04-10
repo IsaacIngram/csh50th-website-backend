@@ -25,6 +25,7 @@ class Event(Base):
     dress_code = Column(Text)
 
     tags = relationship("Tag", secondary=event_tags, back_populates="events")
+    tickets = relationship("EventTicket", back_populates="event")
 
 class Tag(Base):
     __tablename__ = "tags"
