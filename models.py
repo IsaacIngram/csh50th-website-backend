@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, Date, Time, String, Table, ForeignKey, UUID, DateTime
+from sqlalchemy import Column, Integer, Text, Date, BigInteger, Time, String, Table, ForeignKey, UUID, DateTime
 from sqlalchemy.orm import declarative_base, relationship
 import uuid
 
@@ -40,7 +40,7 @@ class EventTicket(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
-    ticket_id = Column(Integer, nullable=False)
+    ticket_id = Column(BigInteger, nullable=False)
     used_at = Column(DateTime(timezone=True), nullable=True)
 
     event = relationship("Event", back_populates="tickets")
