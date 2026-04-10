@@ -1,12 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends
 from database import AsyncSessionLocal
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
-from models import Event, EventTicket
+from models import Event
 from sqlalchemy.orm import selectinload
-from pydantic import BaseModel
-from datetime import datetime, timezone
-
 app = FastAPI()
 
 app.add_middleware(
@@ -26,12 +23,8 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
 
-class ScanTicketRequest(BaseModel):
-    ticket_id: int
-    event_id: int
-
 @app.get("/events")
-async def events(db=Depends(get_db)):
+async def events(db = Depends(get_db)):
     result = await db.execute(
         select(Event).options(selectinload(Event.tags))
     )
@@ -49,28 +42,6 @@ async def events(db=Depends(get_db)):
             "address": e.address,
             "dress_code": e.dress_code,
             "tags": [t.tag_name for t in e.tags],
-            "ticket_url": e.ticket_url
         }
         for e in event_results
     ]
-
-@app.post("/scan-ticket")
-async def scan_ticket(request: ScanTicketRequest, db=Depends(get_db)):
-    existing = await db.execute(
-        select(EventTicket).where(
-            EventTicket.ticket_id == request.ticket_id,
-            EventTicket.event_id == request.event_id
-        )
-    )
-    if existing.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="Ticket has already been scanned.")
-
-    new_ticket = EventTicket(
-        event_id=request.event_id,
-        ticket_id=request.ticket_id,
-        used_at=datetime.now(timezone.utc)
-    )
-    db.add(new_ticket)
-    await db.commit()
-
-    return {"success": True, "message": "Ticket scanned successfully."}
