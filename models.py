@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, Date, BigInteger, Time, String, Table, ForeignKey, UUID, DateTime
+from sqlalchemy import Column, Integer, Text, Date, BigInteger, Time, String, Table, ForeignKey, UUID, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, relationship
 import uuid
 
@@ -26,6 +26,7 @@ class Event(Base):
 
     tags = relationship("Tag", secondary=event_tags, back_populates="events")
     tickets = relationship("EventTicket", back_populates="event")
+    check_ins = relationship("EventNamesList", back_populates="event")
 
 class Tag(Base):
     __tablename__ = "tags"
@@ -44,3 +45,14 @@ class EventTicket(Base):
     used_at = Column(DateTime(timezone=True), nullable=True)
 
     event = relationship("Event", back_populates="tickets")
+
+
+class EventNamesList(Base):
+    __tablename__ = "event_names_list"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    person_name = Column(Text, nullable=False)
+    checked_in = Column(Boolean, nullable=False, default=False)
+
+    event = relationship("Event", back_populates="check_ins")

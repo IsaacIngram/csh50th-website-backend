@@ -2,10 +2,11 @@ from fastapi import FastAPI, Depends, HTTPException
 from database import AsyncSessionLocal
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.future import select
-from models import Event, EventTicket
+from models import Event, EventTicket, EventNamesList
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
 from datetime import datetime, timezone
+from uuid import UUID as UUIDType
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +41,10 @@ async def get_db():
 class ScanTicketRequest(BaseModel):
     ticket_id: int
     event_id: int
+
+
+class UpdateCheckInStatusRequest(BaseModel):
+    checked_in: bool
 
 @app.get("/events")
 async def events(db=Depends(get_db)):
@@ -84,3 +89,42 @@ async def scan_ticket(request: ScanTicketRequest, db=Depends(get_db)):
     await db.commit()
 
     return {"success": True, "message": "Ticket scanned successfully."}
+
+
+@app.get("/event-check-ins/{event_id}")
+async def event_check_ins(event_id: int, db=Depends(get_db)):
+    result = await db.execute(
+        select(EventNamesList).where(EventNamesList.event_id == event_id)
+    )
+    check_ins = result.scalars().all()
+
+    return [
+        {
+            "id": check_in.id,
+            "event_id": check_in.event_id,
+            "person_name": check_in.person_name,
+            "checked_in": check_in.checked_in,
+        }
+        for check_in in check_ins
+    ]
+
+
+@app.patch("/event-check-ins/{check_in_id}")
+async def update_check_in_status(check_in_id: UUIDType, request: UpdateCheckInStatusRequest, db=Depends(get_db)):
+    result = await db.execute(
+        select(EventNamesList).where(EventNamesList.id == check_in_id)
+    )
+    check_in = result.scalar_one_or_none()
+
+    if check_in is None:
+        raise HTTPException(status_code=404, detail="Check-in not found.")
+
+    check_in.checked_in = request.checked_in
+    await db.commit()
+
+    return {
+        "id": check_in.id,
+        "event_id": check_in.event_id,
+        "person_name": check_in.person_name,
+        "checked_in": check_in.checked_in,
+    }
